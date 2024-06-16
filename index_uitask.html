@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" /> 
+		<title>Hypercube Projection</title>
+		<link rel="stylesheet" type="text/css" href="main.css" />
+		<script type="text/javascript" src="ymap.js"></script>
+		<script type="text/javascript" src="force.js"></script>
+		<script type="text/javascript" src="ymap_fashion_mnist.js"></script>
+		<script type="text/javascript" src="iris.js"></script>
+		<script type="text/javascript" src="hypersolid.ui-task.js"></script>
+		<script type="text/javascript" src="hypersolid.shapebank.js"></script>
+		<style>
+			.canvas-column {
+				display: flex;
+				flex-direction: column;
+				justify-content: space-around;
+				align-items: center;
+			}
+		</style>
+		<style>
+			.canvas-container {
+				display: flex;
+				justify-content: space-between;
+				width: 100%;
+			}
+		</style>
+		<style>
+			#settings {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				width: 25%;
+				height: 95vh;
+				justify-content: space-evenly;
+			}
+			#settings > * {
+				margin-left: 20px;
+				margin-right: 20px;
+			}
+		</style>
+		<style>
+			#instructions {
+				border-collapse: collapse;
+			}
+			#instructions td {
+				padding: 5px;
+			}
+		</style>
+		<style>
+			.pretty-button {
+				background-color: #4CAF50; 
+				border: 2px solid #4CAF50;
+				width: 120px;
+				color: white;
+				padding: 5px 5px;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 14px;
+				margin: 1px 1px;
+				cursor: pointer;
+				border-radius: 4px;
+				transition-duration: 0.1s;
+			}
+		
+			.pretty-button:hover {
+				box-shadow: 0 0 5px rgba(0,0,0,0.24), 0 0 5px rgba(0,0,0,0.19);
+			}
+		</style>
+		<style>
+			#track-h {
+				background:
+				radial-gradient(circle at center, white 60%, transparent 70%),
+				conic-gradient(
+						white 0deg 1deg,
+						transparent 1deg 30deg, 
+						white 30deg 31deg,
+						transparent 31deg 90deg,
+						white 90deg 91deg,
+						transparent 91deg 119deg,
+						white 119deg 121deg, 
+						transparent 121deg 150deg,
+						white 150deg 151deg,
+						transparent 151deg 210deg,
+						white 210deg 211deg,
+						transparent 211deg 239deg,
+						white 239deg 241deg,
+						transparent 241deg 270deg,
+						white 270deg 271deg,
+						transparent 271deg 330deg,
+						white 330deg 331deg,
+						transparent 331deg 359deg,
+						white 359deg 360deg
+						),
+				conic-gradient(
+					rgba(106, 204, 100, 0.95) 0deg 30deg, 
+					rgba(72, 120, 208, 0.95) 90deg 150deg, 
+					rgba(149, 108, 180, 0.95) 210deg 270deg,
+					rgba(106, 204, 100, 0.95) 330deg 0deg);
+				background-clip: content-box, border-box, border-box;
+				border: double 10px transparent;
+				padding: 15px;
+			}
+			#track-v {
+				background:
+				radial-gradient(circle at center, white 60%, transparent 70%),
+				conic-gradient(
+						white 0deg 1deg,
+						transparent 1deg 30deg, 
+						white 30deg 31deg,
+						transparent 31deg 90deg,
+						white 90deg 91deg,
+						transparent 91deg 119deg,
+						white 119deg 121deg, 
+						transparent 121deg 150deg,
+						white 150deg 151deg,
+						transparent 151deg 210deg,
+						white 210deg 211deg,
+						transparent 211deg 239deg,
+						white 239deg 241deg,
+						transparent 241deg 270deg,
+						white 270deg 271deg,
+						transparent 271deg 330deg,
+						white 330deg 331deg,
+						transparent 331deg 359deg,
+						white 359deg 360deg
+						),
+				conic-gradient(
+					rgba(214, 95, 95, 0.95) 0deg 30deg, 
+					rgba(220, 126, 192, 0.95) 90deg 150deg, 
+					rgba(213, 187, 103, 0.95) 210deg 270deg,
+					rgba(214, 95, 95, 0.95) 330deg 0deg);
+				background-clip: content-box, border-box, border-box;
+				border: double 10px transparent;
+				padding: 15px;
+			}
+			#handle-h, #handle-v {
+				background: black;
+				border-radius: 50%;
+				border: 2px solid rgba(150, 150, 150, 0.95);
+			}
+			.track-text{
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				font-size: 20px;
+				color: black;
+			}
+			.track-border-first {
+				position: absolute;
+				top: 10%;
+				left: 46%;
+			}
+			.track-border-second {
+				position: absolute;
+				top: 60%;
+				left: 74%;
+			}
+			.track-border-third {
+				position: absolute;
+				top: 60%;
+				left: 16%;
+			}
+		</style>
+		<style>
+			body {
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+				width: 100vw;
+				margin-left: 0;
+				margin-right: 0;
+				overflow-x: hidden;
+				overflow-y: hidden;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			.header {
+				font-size: 22px;
+				font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+				text-align: center;
+				padding: 10px;
+				color: white;
+				font-weight: bold;
+			}
+		</style>
+		<style>
+			hr {
+				border: none;
+				border-top: 1px solid rgb(175, 175, 175);
+				color: #969696;
+				overflow: visible;
+				text-align: center;
+				height: 5px;
+			}
+		</style>
+	</head>
+	
+	<body style="margin-top: 0px;">
+		<div class="canvas-container" style="height: 7%; ; background-color: rgb(127, 172, 216)">
+			<div class="canvas-container" style="width: 26%; border-top-left-radius: 6px; border-top-right-radius: 6px; justify-content: center;">
+				<div class="header">Task</div>
+			</div>
+			<div class="canvas-container" style="width: 48%; justify-content: center;">
+				<div class="header">Projection</div>
+			</div>
+			<div class="canvas-container" style="width: 26%; border-top-left-radius: 6px; border-top-right-radius: 6px; justify-content: center;">
+				<div class="header">Obtained matches</div>
+				<div id="metric-subheader" class="header"></div>
+			</div>
+		</div>
+		<div class="canvas-container" style="height: 93%">
+			<div id="settings" style="width: 26%; background-color: rgba(249, 250, 251, 1);">
+				<div hidden id="silhouette-container" style="height: 30px; width: 75%; display: flex; flex-direction: row; justify-content: space-evenly; margin: 10px;"></div>
+				<table hidden id="instructions">
+					<tr>
+						<td><button onclick="window.setView('xy', true)" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 0px;">
+							xy
+						</button></td>
+						<td>0</td>
+					</tr>
+					<tr>
+						<td><button onclick="window.setView('yz', true)" class="pretty-button" style="background-color: rgba(72, 120, 208, 0.95); border-color: transparent; margin: 0px;">
+							yz
+						</button></td>
+						<td>0</td>
+					</tr>
+					<tr>
+						<td>
+							<button onclick="window.setView('xz', true)" class="pretty-button" style="background-color: rgba(149, 108, 180, 0.95); border-color: transparent; margin: 0px;">
+								xz
+							</button>
+						</td>
+						<td>0</td>
+					</tr>
+					<tr>
+						<td>
+							<button onclick="window.setView('xw', true)" class="pretty-button" style="background-color: rgba(214, 95, 95, 0.95); border-color: transparent; margin: 0px;">
+								xw
+							</button>
+						</td>
+						<td>0</td>
+					</tr>
+					<tr>
+						<td>
+							<button onclick="window.setView('yw', true)" class="pretty-button" style="background-color: rgba(220, 126, 192, 0.95); border-color: transparent; margin: 0px;">
+								yw
+							</button>
+						</td>
+						<td>0</td>
+					</tr>
+					<tr>
+						<td>
+							<button onclick="window.setView('zw', true)" class="pretty-button" style="background-color: rgba(213, 187, 103, 0.95); border-color: transparent; margin: 0px;">
+								zw
+							</button>
+						</td>
+						<td>0</td>
+					</tr>
+				</table> 
+				<div hidden id="wheel-container" style="display: none; justify-content: space-between;">
+					<div id="slider-h" style="position: relative; width: 175px; height: 175px; margin: 7.5px">
+						<div id="track-h" style="position: absolute; top: 50%; left: 50%; width: 150px; height: 150px; border: 0px solid #000; border-radius: 50%; transform: translate(-50%, -50%);">
+							<div class="track-text">🖱️ ↔️</div>
+							<div class="track-border-first">xy</div>
+							<div class="track-border-second">yz</div>
+							<div class="track-border-third">xz</div>
+						</div>
+						<div id="handle-h" style="position: absolute; top: 50%; left: 97%; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.65); border-radius: 50%; transform: translate(-50%, -50%);"></div>
+					</div>
+					<div id="slider-v" style="position: relative; width: 175px; height: 175px; margin: 7.5px">
+						<div id="track-v" style="position: absolute; top: 50%; left: 50%; width: 150px; height: 150px; border: 0px solid #000; border-radius: 50%; transform: translate(-50%, -50%);">
+							<div class="track-text">🖱️ ↕️</div>
+							<div class="track-border-first">xw</div>
+							<div class="track-border-second">yw</div>
+							<div class="track-border-third">zw</div>
+						</div>
+						<div id="handle-v" style="position: absolute; top: 50%; left: 97%; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.65); border-radius: 50%; transform: translate(-50%, -50%);"></div>
+					</div>
+				</div>
+				<form hidden id="hypercube-options">
+					<table>
+						<tr hidden>
+							<td><label><input type="checkbox" name="wsize" style="accent-color: rgb(88, 138, 187);"/>w-Size</label></td>
+							<td><label><input type="checkbox" name="zalpha" style="accent-color: rgb(88, 138, 187);"/>z-Alpha</label></td>
+						<tr>
+							<td><label><input type="checkbox" checked name="livesummary" style="accent-color: rgb(88, 138, 187);"/>Live metrics</label></td>
+							<td><label><input type="checkbox" unchecked name="axes" style="accent-color: rgb(88, 138, 187);"/>Axis edges</label></td>
+						</tr>
+						<tr>
+							<td><label>
+								<input hidden type="range" min="120" max="240" value="240" id="deg-part" style="accent-color: rgb(88, 138, 187);"/>
+								<span hidden id="deg-part-value">Color range 240°</span>
+							</label></td>
+						</tr>
+						<tr>
+							<td><label><input type="range" min="1" max="100" value="50" id="rot-speed" style="accent-color: rgb(88, 138, 187);"/>Rotation speed</label></td>
+						</tr>
+					</table>
+				</form>
+				<div id="task-instruction" style="display: inline; flex-direction: column; justify-content: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					
+				</div>
+				<div id="task-welcome" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					The central view is a 2D projection of a 4D object. Your task is to match the central view with a randomly generated view. 
+					<br><br>You can rotate the central view by dragging the mouse over the canvas. Test this on the central view and click on the button below to start the task!
+				</div>
+				<canvas id="random-canvas"></canvas>
+				<div id="start-task" style="display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					Click on the button below to generate a random view. <br>
+					<button onclick="window.startTask()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
+						Generate view
+					</button>
+				</div>
+				<div id="submit-view" style="display: none; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					Try to match the random view above by rotating the central view. <br>When you think you have matched the view, click on the button below.
+					<button onclick="window.submitView()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
+						Submit view
+					</button>
+				</div>
+				<div id="copy-results" style="display: none; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					You have completed the UI task, thank you for your effort! <br>The time it took to find each view is displayed below. You can copy the results to the clipboard by clicking the button below.
+					<button onclick="window.copyResults()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
+						Copy results
+					</button>
+				</div>
+				<div id="ui-task-results" style="margin: 10px"></div>
+			</div>
+			<div style="border-left: 0px solid black; height: 0px;"></div>
+			<div class="canvas-column" style="height: 100vh; width: 48%;">
+				<div class="canvas-container">
+					<select hidden id="shape-select" style="width: 25%; height: 30px; margin: 10px;">
+						<option value="clustered">Random 4D clusters</option>
+						<option value="ymap-wine">YMAP - Wine</option>
+						<option value="force-wine">Force - Wine</option>
+						<option value="ymap-fashion-mnist">YMAP - Fashion MNIST</option>
+						<option value="iris">Iris</option>
+					</select>
+					<div id="legend-container" style="height: 30px; width: 75%; display: flex; flex-direction: row; justify-content: space-evenly; margin: 10px;"></div>
+				</div>
+				<canvas id="hypercube-canvas-xy" style="margin-bottom: 10%; cursor: grab;">canvas</canvas>
+			</div>
+			<div style="border-left: 0px solid black; height: 0px;"></div>
+			<div id="random-column" class="canvas-column" style="height: 95vh; width: 13%; background-color: rgba(249, 250, 251, 1);">
+			</div>
+			<div id="obtained-column" class="canvas-column" style="height: 95vh; width: 13%; background-color: rgba(249, 250, 251, 1);">
+			</div>
+		</div>
+	<div id="errata" hidden>4D visualization based on <a href="https://github.com/mrmilosz/hypersolid">Hypersolid</a></div>
+	<script type="text/javascript">
+	/* <![CDATA[ */ (function() {
+		var shapeStr = document.getElementById('shape-select').value;
+		function init(shapeStr) {
+			if (shapeStr == 'clustered') {
+				shape = Hypersolid.ClusteredPoints();
+			} else if (shapeStr == 'ymap-wine') {
+				shape = Hypersolid.ymapProj();
+			} else if (shapeStr == 'force-wine') {
+				shape = Hypersolid.forceProj();
+			}
+			else if (shapeStr == 'ymap-fashion-mnist') {
+				shape = Hypersolid.ymapFashionMnist();
+				// turn off live summary, it is too slow for this dataset
+				document.getElementById('hypercube-options').livesummary.checked = false;
+			}
+			else if (shapeStr == 'iris') {
+				shape = Hypersolid.iris();
+			}
+			let windowHeight = 0.8 * window.innerHeight;
+			let miniHeight = 0.5 * window.innerHeight;
+			viewportXY = Hypersolid.Viewport(shape, document.getElementById('hypercube-canvas-xy'), {
+				checkboxes: document.getElementById('hypercube-options'),
+				// make it as tall as the window
+				height: windowHeight,
+				width: windowHeight,
+				scale: 2,
+				font: 'italic 10px sans-serif',
+				fontColor: '#000',
+				lineWidth: 4,
+				lineJoin: 'round'
+			}, ['x', 'y'], 'main');
+			viewportRandom = Hypersolid.Viewport(shape, document.getElementById('random-canvas'), {
+				checkboxes: document.getElementById('hypercube-options'),
+				width: miniHeight,
+				height: miniHeight,
+				scale: 2,
+				font: 'italic 10px sans-serif',
+				fontColor: '#000',
+				lineWidth: 4,
+				lineJoin: 'round',
+			}, ['x', 'y'], 'random');
+			
+			// define draw function for the document
+			window.draw = function(skipTracker = false) {
+				viewportXY.draw(' ', skipTracker);
+				updateRotations(shape.getRotations());
+			};
+			// define draw function for the random projection
+			window.drawRandom = function() {
+				viewportRandom.draw(' ');
+			};
+			// define update rotations function to show current rotations
+			updateRotations = function(rotations) {
+				var rotationsDeg = {};
+				// the rotations are in radians, so convert to degrees
+				for (var axis in rotations) {
+					rotationsDeg[axis] = Math.round(rotations[axis] * 180 / Math.PI);
+					// if it is 360, set it to 0
+					if (rotationsDeg[axis] == 360) {
+						rotationsDeg[axis] = 0;
+					}
+				}
+				// update the rotation values in the instructions
+				var instructions = document.getElementById('instructions');
+				for (var i = 0; i < instructions.rows.length; i++) {
+					var row = instructions.rows[i];
+					var axis = row.cells[0].textContent.split(' ')[0].toLowerCase();
+					// strip the axis from everything but the letters
+					axis = axis.replace(/[^a-z]/g, '');
+					row.cells[1].textContent = rotationsDeg[axis];
+				}
+			};
+			
+			function rotate(plane, x) {
+				shape.rotate(plane, x);
+				window.draw();
+			};
+			window.viewFindTimes = [];
+			window.viewFindStresses = [];
+			window.viewFindNRots = [];
+			window.generateRandomRotations = function() {
+				var currRotations = JSON.parse(JSON.stringify(shape.getRotations()));
+				// generate a random rotation
+				// first generate 2 random angles for the mouse sliders
+				var randomAngleH = Math.random() * 360;
+				var randomAngleV = Math.random() * 360;
+				// convert the angles to rotations using shape.convertSlider
+				var randomRotsH = shape.convertSlider(['xy', 'yz', 'xz'], randomAngleH);
+				var randomRotsV = shape.convertSlider(['xw', 'yw', 'zw'], randomAngleV);
+				var randomRots = {};
+				// we store the rotations from randomRotsH and randomRotsV in randomRots
+				// but first we need to convert the rotations to radians
+				for (var axis in randomRotsH) {
+					randomRots[axis] = randomRotsH[axis] * Math.PI / 180;
+				}
+				for (var axis in randomRotsV) {
+					randomRots[axis] = randomRotsV[axis] * Math.PI / 180;
+				}
+				window.randomRots = randomRots;
+				// set the random rotations to initialize the random canvas
+				shape.setCustomRotations(window.randomRots, false);
+				window.drawRandom();
+				// compute distances of the random rotations
+				window.randomDist = shape.getDistances(shape.getVertices(), shape.getVertices(), ['x', 'y']);
+				// set the initial rotations again to preserve the main canvas
+				shape.setCustomRotations(currRotations, false);
+				window.draw();
+				window.viewFindStart = new Date().getTime();
+				window.viewFindNRotations = 0;
+			}
+
+			window.nViewsToFind = 4;
+
+			window.startTask = function() {
+				document.getElementById('start-task').style.display = 'none';
+				document.getElementById('submit-view').style.display = 'flex';
+				// then we generate a new random rotation
+				document.getElementById('ui-task-results').innerHTML = window.nViewsToFind - window.viewFindTimes.length + ' views left';
+				// redraw the ui-task-results
+				document.getElementById('ui-task-results').style.display = 'block';
+				// remove the task-welcome
+				document.getElementById('task-welcome').style.display = 'none';
+				window.generateRandomRotations();
+			}
+
+			window.submitView = function() {
+				// we calculate the stress between the random view and the main view
+				var randomDist = window.randomDist;
+				var randomDistSQ = randomDist.map(function(row) {
+					return row.map(function(dist) {
+					return Math.pow(dist, 2);
+					});
+				});
+				var currDist = shape.getDistances(shape.getVertices(), shape.getVertices(), ['x', 'y']);
+				var obtainedStress = viewportXY.computeStress(randomDist, randomDistSQ, currDist);
+				window.viewFindStresses.push(obtainedStress);
+				// we then store the time that was required to reach this match
+				window.viewFindTimes.push(new Date().getTime() - window.viewFindStart);
+				// store the number of rotations that were required to reach this match
+				window.viewFindNRots.push(window.viewFindNRotations);
+				// get the canvas of the random view
+				var randomCanvas = document.getElementById('random-canvas');
+				var clonedCanvas = randomCanvas.cloneNode(true);
+				// get the canvas of the main view
+				var mainCanvas = document.getElementById('hypercube-canvas-xy');
+				var clonedMainCanvas = mainCanvas.cloneNode(true);
+				// shrink the canvases
+				const shrinkSize = 150;
+				clonedCanvas.width = shrinkSize;
+				clonedCanvas.height = shrinkSize;
+				clonedMainCanvas.width = shrinkSize;
+				clonedMainCanvas.height = shrinkSize;
+				// add random canvas to the random-column div
+				var randomColumn = document.getElementById('random-column');
+				randomColumn.appendChild(clonedCanvas);
+				// add main canvas to the obtained-column div
+				var obtainedColumn = document.getElementById('obtained-column');
+				obtainedColumn.appendChild(clonedMainCanvas);
+				// redraw the random view
+				var ctx = clonedCanvas.getContext('2d');
+				ctx.drawImage(randomCanvas, 0, 0, clonedCanvas.width, clonedCanvas.height);
+				// redraw the main view
+				var ctxMain = clonedMainCanvas.getContext('2d');
+				ctxMain.drawImage(mainCanvas, 0, 0, clonedMainCanvas.width, clonedMainCanvas.height);
+				// update the ui-task-results
+				document.getElementById('ui-task-results').innerHTML = window.nViewsToFind - window.viewFindTimes.length + ' views left';
+				
+				if (window.viewFindTimes.length < window.nViewsToFind) {
+					// we make the start-task button visible again
+					document.getElementById('start-task').style.display = 'flex';
+					document.getElementById('submit-view').style.display = 'none';
+				}
+				else {
+					// all views have been found
+					// we add the ui task results (the view find times) to the ui-task-results div
+					// convert the viewfindtimes to seconds rounded to 1 decimal
+					window.viewFindTimesSeconds = window.viewFindTimes.map(function(time) {
+						return (time / 1000).toFixed(1);
+					});
+					window.viewFindStresses = window.viewFindStresses.map(function(stress) {
+						return stress.toFixed(4);
+					});
+					window.taskResults = {
+						'View find time': window.viewFindTimesSeconds,
+						'Performed rotations': window.viewFindNRots,
+						'Stress': window.viewFindStresses,
+					}
+					document.getElementById('ui-task-results').innerHTML = '<pre>' + JSON.stringify(window.taskResults, null, 2) + '</pre'
+					// show the copy results button and hide the submit view button
+					document.getElementById('copy-results').style.display = 'flex';
+					document.getElementById('submit-view').style.display = 'none';
+					// set the canvas to hidden
+					randomCanvas.style.display = 'none';
+					// show a big checkmark
+					document.getElementById('task-welcome').innerHTML = '✔️';
+					document.getElementById('task-welcome').style.fontSize = '100px';
+					document.getElementById('task-welcome').style.display = 'flex';
+				}
+				// we empty the random canvas
+				randomCanvas.getContext('2d').clearRect(0, 0, randomCanvas.width, randomCanvas.height);
+			}
+
+			window.copyResults = function() {
+				// copy viewFindTimesSeconds to clipboard
+				navigator.clipboard.writeText(JSON.stringify(window.taskResults, null, 2));
+			}
+
+			// set the initial rotations to initialize the main canvas
+			shape.setCustomRotations(window.orthogRotations[240]['xy'], false);
+			// run the draw functions to initialize the canvases
+			rotate('xy', 0.0);
+			shape.setSliderAngles(shape.getRotations());
+			window.draw();
+
+		}
+		// initialize the shape
+		init(shapeStr);
+
+		// add event listener to the shape select
+		document.getElementById('shape-select').addEventListener('change', function() {
+			shapeStr = this.value;
+			init(shapeStr);
+		});
+
+		// toggle the rotation wheels
+		window.toggleWheels = function() {
+			var wheelContainer = document.getElementById('wheel-container');
+			var toggleButton = document.getElementById('toggle-wheels');
+			if (wheelContainer.style.display === "none") {
+			wheelContainer.style.display = "flex";
+			toggleButton.textContent = "Hide rotation wheels";
+			} else {
+			wheelContainer.style.display = "none";
+			toggleButton.textContent = "Show rotation wheels";
+			}
+		}
+
+		updateGradients = function(track, width, colorA, colorB, colorC) {
+			var colorACenter = 0;
+			var colorBCenter = 120;
+			var colorCCenter = 240;
+			track.style.background = 
+				'radial-gradient(circle at center, white 60%, transparent 70%), ' +
+				'conic-gradient(' +
+					// white mark at center of colorA (1/2)
+					'white ' + colorACenter + 'deg ' + (colorACenter + 1) + 'deg, ' +
+					// transparent from center A till end of solid color A
+					'transparent ' + (colorACenter + 1) + 'deg ' + (colorACenter + width) + 'deg, ' +
+					// white mark at end of solid color A
+					'white ' + (colorACenter + width) + 'deg ' + (colorACenter + width + 1) + 'deg, ' +
+					// transparent from end of solid color A till start solid color B
+					'transparent ' + (colorACenter + width + 1) + 'deg ' + (colorBCenter - width) + 'deg, ' +
+					// white mark at start solid color B
+					'white ' + (colorBCenter - width) + 'deg ' + (colorBCenter - width + 1) + 'deg, ' +
+					// transparent from start solid color B till center of color B
+					'transparent ' + (colorBCenter - width + 1) + 'deg ' + (colorBCenter-1) + 'deg, ' +
+					// white mark at center of color B
+					'white ' + (colorBCenter - 1) + 'deg ' + (colorBCenter + 1) + 'deg, ' +
+					// transparent from center of color B till end of solid color B
+					'transparent ' + (colorBCenter + 1) + 'deg ' + (colorBCenter + width) + 'deg, ' +
+					// white mark at end of solid color B
+					'white ' + (colorBCenter + width) + 'deg ' + (colorBCenter + width + 1) + 'deg, ' +
+					// transparent from end of solid color B till start solid color C
+					'transparent ' + (colorBCenter + width + 1) + 'deg ' + (colorCCenter - width) + 'deg, ' +
+					// white mark at start solid color C
+					'white ' + (colorCCenter - width) + 'deg ' + (colorCCenter - width + 1) + 'deg, ' +
+					// transparent from start solid color C till center of color C
+					'transparent ' + (colorCCenter - width + 1) + 'deg ' + (colorCCenter-1) + 'deg, ' +
+					// white mark at center of color C
+					'white ' + (colorCCenter - 1) + 'deg ' + (colorCCenter + 1) + 'deg, ' +
+					// transparent from center of color C till end of solid color C
+					'transparent ' + (colorCCenter + 1) + 'deg ' + (colorCCenter + width) + 'deg, ' +
+					// white mark at end of solid color C
+					'white ' + (colorCCenter + width) + 'deg ' + (colorCCenter + width + 1) + 'deg, ' +
+					// transparent from end of solid color C till start solid color A
+					'transparent ' + (colorCCenter + width + 1) + 'deg ' + (360 - width) + 'deg, ' +
+					// white mark at start solid color A
+					'white ' + (360 - width) + 'deg ' + (360 - width + 1) + 'deg, ' +
+					// transparent from start solid color A till center of color A
+					'transparent ' + (360 - width + 1) + 'deg ' + 359 + 'deg, ' +
+					// white mark at center of color A (2/2)
+					'white ' + 359 + 'deg ' + 360 + 'deg), ' +
+				'conic-gradient(' +
+				colorA + ' ' + '0deg ' + (colorACenter + width) + 'deg, ' +
+				colorB + ' ' + (colorBCenter-width) + 'deg ' + (colorBCenter+width) + 'deg, ' +
+				colorC + ' ' + (colorCCenter-width) + 'deg ' + (colorCCenter+width) + 'deg, ' +
+				colorA + ' ' + (360-width) + 'deg ' +  '0deg)';
+			track.style.backgroundClip = 'content-box, border-box, border-box';
+			track.style.border = 'double 10px transparent';
+			track.style.padding = '15px';
+			track.style.position = 'absolute';
+			track.style.top = '50%';
+			track.style.left = '50%';
+			track.style.width = '150px';
+			track.style.height = '150px';
+			track.style.border = '0px solid #000';
+			track.style.borderRadius = '50%';
+			track.style.transform = 'translate(-50%, -50%)';
+		}
+
+		document.getElementById('deg-part').addEventListener('input', function() {
+			var value = this.value;
+			var width = 60 - (value - 120) / 2;
+			var trackH = document.getElementById('track-h');
+			var trackV = document.getElementById('track-v');
+			updateGradients(trackH, width, 'rgba(106, 204, 100, 0.95)', 'rgba(72, 120, 208, 0.95)', 'rgba(149, 108, 180, 0.95)');
+			updateGradients(trackV, width, 'rgba(214, 95, 95, 0.95)', 'rgba(220, 126, 192, 0.95)', 'rgba(213, 187, 103, 0.95)');
+		});
+		// manually trigger the input event to set the initial value
+		document.getElementById('deg-part').dispatchEvent(new Event('input'));
+
+		// function to apply a rotation vector to the shape
+		window.setView = function(view, animated = false) {
+			// set the rotations for the view
+			if (typeof view == 'number') {
+				console.log('setting silhouette view for ' + view + ' with animated ' + animated);
+				var silhouetteRotations = window.maxSilhouetteRotations[view];
+				var newRots = shape.setCustomRotations(silhouetteRotations, animated);
+				// simulate a mouseup event for the xy-canvas
+				document.getElementById('hypercube-canvas-xy').dispatchEvent(new MouseEvent('mouseup'));
+			} else {
+				let cRange = document.getElementById('deg-part').value;
+				let viewRotations = window.orthogRotations[cRange][view];
+				var newRots = shape.setCustomRotations(viewRotations, animated);
+				// simulate a mouseup event for the xy-canvas
+				document.getElementById('hypercube-canvas-xy').dispatchEvent(new MouseEvent('mouseup'));
+			}
+		};
+
+		window.requestAnimFrame = window.requestAnimationFrame ||
+		window.webkitRequestAnimationFrame ||
+		window.mozRequestAnimationFrame    ||
+		window.oRequestAnimationFrame      ||
+		window.msRequestAnimationFrame     ||
+		function( callback ){
+		window.setTimeout(callback, 1000 / 60);
+		};
+
+		(function animloop(){
+		requestAnimFrame(animloop);
+		})();
+
+		document.getElementById('deg-part').addEventListener('input', function() {
+			degs = this.value;
+			document.getElementById('deg-part-value').textContent = degs + '°';
+		});
+
+	})(); // ]]>
+
+	</script>
+
+	</body>
+</html>
