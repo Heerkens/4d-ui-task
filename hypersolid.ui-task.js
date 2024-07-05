@@ -74,14 +74,14 @@
         window.maxSilhouetteColorRange[uniqueLabels[i]] = 240;
       }
       // initialize the slider rotations
-      sliderRotations = {xy: Math.PI, xz: 0, xw: Math.PI, yz: 0, yw: 0, zw: 0};
+      sliderRotations = {xy: Math.PI, xz: 0, xw: 0, yz: Math.PI, yw: 0, zw: 0};
       window.orthogRotations = {
         240: {
-          xy: {xy: 180, yz: 0, xz: 0, xw: 180, yw: 0, zw: 0},
-          xz: {xy: 0, yz: 270, xz: 90, xw: 0, yw: 180, zw: 0},
-          xw: {xy: 0, yz: 180, xz: 0, xw: 0, yw: 270, zw: 90},
+          xy: {xy: 180, yz: 180, xz: 0, xw: 0, yw: 0, zw: 0},
+          xz: {xy: 0, yz: 90, xz: 180, xw: 0, yw: 0, zw: 270},
+          xw: {xy: 180, yz: 0, xz: 0, xw: 0, yw: 270, zw: 90},
           yz: {xy: 90, yz: 0, xz: 270, xw: 0, yw: 180, zw: 0},
-          yw: {xy: 0, yz: 180, xz: 0, xw: 90, yw: 0, zw: 270},
+          yw: {xy: 0, yz: 180, xz: 90, xw: 270, yw: 0, zw: 0},
           zw: {xy: 90, yz: 0, xz: 270, xw: 0, yw: 270, zw: 90}
         }
       };
@@ -101,7 +101,7 @@
     copyVertices();
 
     // This is where we store the current rotations about each axis.
-    var rotations = { xy: Math.PI, xz: 0, xw: Math.PI, yz: 0, yw: 0, zw: 0 };
+    var rotations = { xy: Math.PI, xz: 0, xw: 0, yz: Math.PI, yw: 0, zw: 0 };
 
     // we rotate in the order: (xz, xw, yw, xy, yz, zw)
     // this seemed to give the most uniform coverage
@@ -433,8 +433,8 @@
 
     self.rotationsToSlider = function(rotations) {
       // get the horizontal and vertical directions
-      horDirections = ['xy', 'yz', 'xz'];
-      verDirections = ['xw', 'yw', 'zw'];
+      horDirections = ['xy', 'xw', 'xz'];
+      verDirections = ['yz', 'yw', 'zw'];
       // convert the rotations from radians to degrees
       horRotations = {};
       verRotations = {};
@@ -740,7 +740,8 @@
         }
         // if the label is a string, it is an axis label
         if (typeof label == 'string') {
-          if (checkboxes.axes.checked) {
+          var axesCheckbox = document.getElementById('axes-checkbox');
+          if (axesCheckbox.checked) {
             var color = {'r': 0, 'g': 0, 'b': 0};
             var alpha = 1;
             var radius = 3;
@@ -766,7 +767,8 @@
       }
 
       // draw the edges
-      if (checkboxes.axes.checked) {
+      var axesCheckbox = document.getElementById('axes-checkbox');
+      if (axesCheckbox.checked) {
         for (var i in edges) {
           var x = [adjusted[edges[i][0]].x, adjusted[edges[i][1]].x];
           var y = [adjusted[edges[i][0]].y, adjusted[edges[i][1]].y];
@@ -777,6 +779,7 @@
           context.moveTo(x[0], y[0]);
           context.lineTo(x[1], y[1]);
           context.closePath();
+          context.strokeStyle = 'rgba(0,0,0,0.2)';
           context.stroke();
           context.font = 'italic 16px sans-serif';
           context.fillStyle = 'rgba(0,0,0,1)';
@@ -1118,11 +1121,11 @@
         if (lastAngleHDisplay < 0) {
           lastAngleHDisplay += 360;
         }
-        // horizontal slider controls xy, yz, xz
-        convAnglesH = shape.convertSlider(['xy', 'yz', 'xz'], lastAngleHDisplay);
+        // horizontal slider controls xy, xw, xz
+        convAnglesH = shape.convertSlider(['xy', 'xw', 'xz'], lastAngleHDisplay);
         // mind that the rotation variables are in radians
         sliderRotations.xy = convAnglesH.xy * Math.PI / 180;
-        sliderRotations.yz = convAnglesH.yz * Math.PI / 180;
+        sliderRotations.xw = convAnglesH.xw * Math.PI / 180;
         sliderRotations.xz = convAnglesH.xz * Math.PI / 180;
         // define the center of the slider track
         var centerHX = circleH.width / 2;
@@ -1154,9 +1157,9 @@
           lastAngleVDisplay += 360;
         }
         // vertical slider controls yz, yw, zw
-        convAnglesV = shape.convertSlider(['xw', 'yw', 'zw'], lastAngleVDisplay);
+        convAnglesV = shape.convertSlider(['yz', 'yw', 'zw'], lastAngleVDisplay);
         // mind that the rotation variables are in radians
-        sliderRotations.xw = convAnglesV.xw * Math.PI / 180;
+        sliderRotations.yz = convAnglesV.yz * Math.PI / 180;
         sliderRotations.yw = convAnglesV.yw * Math.PI / 180;
         sliderRotations.zw = convAnglesV.zw * Math.PI / 180;
         // define the center of the slider track
@@ -1173,66 +1176,6 @@
         shape.setSliderRotations();
         shape.rotate('xy', 0);
         startCoords = currCoords;
-        
-        //// calculate distance of these rotations to the random rotations
-        //// we use manhattan distance (sum of absolute differences)
-        //var featureContributions = shape.rotationsToFeatureContributions(shape.getRotations());
-        //var diffFC = 0;
-        //for (var axis in featureContributions) {
-        //  diffFC += Math.abs(featureContributions[axis] - window.randomFC[axis]);
-        //}
-        //window.nViewsToFind = 4;
-        //if ((window.viewFindTimes.length < window.nViewsToFind) & (diffFC < 0.25) & (new Date().getTime() - window.viewFindStart > 5000)){
-        //  // if the difference in feature contributions is less than 0.25, we consider it a match
-        //  // we then store the time that was required to reach this match
-        //  window.viewFindTimes.push(new Date().getTime() - window.viewFindStart);
-        //  // get the canvas of the random view
-        //  var randomCanvas = document.getElementById('random-canvas');
-        //  var clonedCanvas = randomCanvas.cloneNode(true);
-        //  // get the canvas of the main view
-        //  var mainCanvas = document.getElementById('hypercube-canvas-xy');
-        //  var clonedMainCanvas = mainCanvas.cloneNode(true);
-        //  // shrink the canvases
-        //  const shrinkSize = 150;
-        //  clonedCanvas.width = shrinkSize;
-        //  clonedCanvas.height = shrinkSize;
-        //  clonedMainCanvas.width = shrinkSize;
-        //  clonedMainCanvas.height = shrinkSize;
-        //  // add random canvas to the random-column div
-        //  var randomColumn = document.getElementById('random-column');
-        //  randomColumn.appendChild(clonedCanvas);
-        //  randomColumn.appendChild(document.createElement('hr'));
-        //  // add main canvas to the obtained-column div
-        //  var obtainedColumn = document.getElementById('obtained-column');
-        //  obtainedColumn.appendChild(clonedMainCanvas);
-        //  obtainedColumn.appendChild(document.createElement('hr'));
-        //  // redraw the random view
-        //  var ctx = clonedCanvas.getContext('2d');
-        //  ctx.drawImage(randomCanvas, 0, 0, clonedCanvas.width, clonedCanvas.height);
-        //  // redraw the main view
-        //  var ctxMain = clonedMainCanvas.getContext('2d');
-        //  ctxMain.drawImage(mainCanvas, 0, 0, clonedMainCanvas.width, clonedMainCanvas.height);
-        //  // then we generate a new random rotation
-        //  if (window.viewFindTimes.length < 4) {
-        //    document.getElementById('ui-task-results').innerHTML = window.viewFindTimes.length + '/' + window.nViewsToFind + ' views found';
-        //    // redraw the ui-task-results
-        //    document.getElementById('ui-task-results').style.display = 'block';
-        //    window.generateRandomRotations();
-        //  }
-        //  else {
-        //    // all views have been found
-        //    // we empty the random canvas
-        //    randomCanvas.getContext('2d').clearRect(0, 0, randomCanvas.width, randomCanvas.height);
-        //    // we add the ui task results (the view find times) to the ui-task-results div
-        //    // convert the viewfindtimes to seconds rounded to 1 decimal
-        //    var viewFindTimesSeconds = window.viewFindTimes.map(function(time) {
-        //      return (time / 1000).toFixed(1);
-        //    });
-        //    // copy viewFindTimesSeconds to clipboard
-        //    navigator.clipboard.writeText(viewFindTimesSeconds.join(', '));
-        //    document.getElementById('ui-task-results').innerHTML = 'View find times: ' + viewFindTimesSeconds.join(', ') + ' seconds';
-        //  }
-        //}
 
         window.draw();
       };

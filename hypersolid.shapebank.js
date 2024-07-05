@@ -159,14 +159,6 @@
   function forceProj() {};
   forceProj.prototype = Hypersolid.Shape(window.forcePoints, [], window.forceLabels);
 
-  // read data from ymap_fashion_mnist.js (points and labels)
-  Hypersolid.ymapFashionMnist = function() {
-    var maxPoints = addMaxPoints(window.ymap_fashion_mnistPoints, [], window.ymap_fashion_mnistLabels);
-    return Hypersolid.Shape(maxPoints.points, maxPoints.edges, window.ymap_fashion_mnistLabels);
-  };
-  function ymapFashionMnist() {};
-  ymapFashionMnist.prototype = Hypersolid.Shape(window.ymap_fashion_mnistPoints, [], window.ymap_fashion_mnistLabels);
-
 
   // read data from iris.js (points and labels)
   Hypersolid.iris = function() {
@@ -175,6 +167,14 @@
   };
   function iris() {};
   iris.prototype = Hypersolid.Shape(window.irisPoints, [], window.irisLabels);
+
+  // read data from ui-task-data.js (points and labels)
+  Hypersolid.UITaskData = function() {
+    var maxPoints = addMaxPoints(window.UITaskPoints, [], window.UITaskLabels);
+    return Hypersolid.Shape(maxPoints.points, maxPoints.edges, maxPoints.labels);
+  };
+  function UITaskData() {};
+  UITaskData.prototype = Hypersolid.Shape(window.UITaskPoints, [], window.UITaskLabels);
 
   // 5 cell
   Hypersolid.Simplex = function() {

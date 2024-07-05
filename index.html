@@ -6,8 +6,8 @@
 		<link rel="stylesheet" type="text/css" href="main.css" />
 		<script type="text/javascript" src="ymap.js"></script>
 		<script type="text/javascript" src="force.js"></script>
-		<script type="text/javascript" src="ymap_fashion_mnist.js"></script>
 		<script type="text/javascript" src="iris.js"></script>
+		<script type="text/javascript" src="ui-task-data.js"></script>
 		<script type="text/javascript" src="hypersolid.ui-task.js"></script>
 		<script type="text/javascript" src="hypersolid.shapebank.js"></script>
 		<style>
@@ -201,20 +201,125 @@
 	<body style="margin-top: 0px;">
 		<div class="canvas-container" style="height: 7%; ; background-color: rgb(127, 172, 216)">
 			<div class="canvas-container" style="width: 26%; border-top-left-radius: 6px; border-top-right-radius: 6px; justify-content: center;">
-				<div class="header">Task</div>
+				<div id='left-header' class="header"></div>
 			</div>
 			<div class="canvas-container" style="width: 48%; justify-content: center;">
 				<div class="header">Projection</div>
 			</div>
 			<div class="canvas-container" style="width: 26%; border-top-left-radius: 6px; border-top-right-radius: 6px; justify-content: center;">
-				<div class="header">Obtained matches</div>
+				<div id='right-header' class="header"></div>
 				<div id="metric-subheader" class="header"></div>
 			</div>
 		</div>
 		<div class="canvas-container" style="height: 93%">
 			<div id="settings" style="width: 26%; background-color: rgba(249, 250, 251, 1);">
-				<div hidden id="silhouette-container" style="height: 30px; width: 75%; display: flex; flex-direction: row; justify-content: space-evenly; margin: 10px;"></div>
-				<table hidden id="instructions">
+				<div hidden id="silhouette-container" style="height: 30px; width: 75%; display: flex; flex-direction: row; justify-content: space-evenly; margin: 10px;"></div> 
+				<form hidden id="hypercube-options">
+					<table>
+						<tr hidden>
+							<td><label><input type="checkbox" name="wsize" style="accent-color: rgb(88, 138, 187);"/>w-Size</label></td>
+							<td><label><input type="checkbox" name="zalpha" style="accent-color: rgb(88, 138, 187);"/>z-Alpha</label></td>
+						<tr>
+							<td><label><input type="checkbox" checked name="livesummary" style="accent-color: rgb(88, 138, 187);"/>Live metrics</label></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td><label>
+								<input hidden type="range" min="120" max="240" value="240" id="deg-part" style="accent-color: rgb(88, 138, 187);"/>
+								<span hidden id="deg-part-value">Color range 240°</span>
+							</label></td>
+						</tr>
+						<tr>
+							<td></td>
+						</tr>
+					</table>
+				</form>
+				<div id="task-instruction" style="display: inline; flex-direction: column; justify-content: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					
+				</div>
+				<div id="task-welcome" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					The central view is a 2D projection of a 4D object. Your task is to match the central view with a given view. 
+					<br><br>You can rotate the central view by dragging the mouse over the canvas. You will likely notice that it does not rotate in the same way as a 3D object.
+				</div>
+				<canvas id="random-canvas" style="display: none"></canvas>
+				<div id="start-tutorial" style="display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					Before starting the task, you will learn how to navigate the 4D object through only mouse movements. <br><br>Click on the button below to start the tutorial.
+					<button onclick="window.startTutorial()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
+						Start tutorial
+					</button>
+				</div>
+				<div id="next-tutorial" style="display: none; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					<br>
+					<button onclick="window.nextTutorial()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
+						Next
+					</button>
+				</div>
+				<div id="next-tutorial-2" style="display: none; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					<br>
+					<button onclick="window.nextTutorial2()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
+						Next
+					</button>
+				</div>
+				<div id="start-task" style="display: none; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					Click on the button below to display a view to match. <br>
+					<button onclick="window.startTask()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
+						Generate view
+					</button>
+				</div>
+				<div id="submit-view" style="display: none; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					Try to match the given view above by rotating the central view. <br><br>When you think you have matched the view, click on the button below.<br><br>Note: mirrored/rotated but otherwise identical views are also valid!
+					<button onclick="window.submitView()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
+						Submit view
+					</button>
+				</div>
+				<div id="copy-results" style="display: none; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+					You have completed the UI task, thank you for your effort! <br>Your performance is displayed below. You can copy the results to the clipboard by clicking the button below.
+					<button onclick="window.copyResults()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
+						Copy results
+					</button>
+				</div>
+				<div id="ui-task-results" style="margin: 15px;"></div>
+			</div>
+			<div style="border-left: 0px solid black; height: 0px;"></div>
+			<div class="canvas-column" style="height: 100vh; width: 48%;">
+				<div class="canvas-container">
+					<select hidden id="shape-select" style="width: 0%; height: 30px; margin: 10px;">
+						<option value="ui-task-data">UI Task</option>
+						<option value="clustered">Random 4D clusters</option>
+						<option value="ymap-wine">YMAP - Wine</option>
+						<option value="force-wine">Force - Wine</option>
+						<option value="ymap-fashion-mnist">YMAP - Fashion MNIST</option>
+						<option value="iris">Iris</option>
+					</select>
+					<label hidden style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;"><input id='axes-checkbox' type="checkbox" checked name="axes" style="accent-color: rgb(88, 138, 187); width: 25%;"/>Axis edges</label>
+					<label style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;"><input type="range" min="1" max="100" value="50" id="rot-speed" style="accent-color: rgb(88, 138, 187); width: 40%; margin: 10px;"/>Rotation speed</label>
+					<div id="legend-container" style="height: 30px; width: 60%; display: flex; flex-direction: row; justify-content: space-evenly; margin: 10px;"></div>
+				</div>
+				<canvas id="hypercube-canvas-xy" style="margin-bottom: 10%; cursor: grab;">canvas</canvas>
+			</div>
+			<div style="border-left: 0px solid black; height: 0px;"></div>
+			<div id="control-container" style="width: 26%; justify-content: space-evenly; align-items: center; height: 100%; background-color: rgba(249, 250, 251, 1); flex-direction: column; display: none;">
+				<div id="wheel-container" style="display: flex; justify-content: space-evenly; width: 100%;">
+					<div id="slider-h" style="position: relative; width: 175px; height: 175px; margin: 7.5px">
+						<div id="track-h" style="position: absolute; top: 50%; left: 50%; width: 150px; height: 150px; border: 0px solid #000; border-radius: 50%; transform: translate(-50%, -50%);">
+							<div class="track-text">🖱️ ↔️</div>
+							<div class="track-border-first">xy</div>
+							<div class="track-border-second">xw</div>
+							<div class="track-border-third">xz</div>
+						</div>
+						<div id="handle-h" style="position: absolute; top: 50%; left: 97%; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.65); border-radius: 50%; transform: translate(-50%, -50%);"></div>
+					</div>
+					<div id="slider-v" style="position: relative; width: 175px; height: 175px; margin: 7.5px">
+						<div id="track-v" style="position: absolute; top: 50%; left: 50%; width: 150px; height: 150px; border: 0px solid #000; border-radius: 50%; transform: translate(-50%, -50%);">
+							<div class="track-text">🖱️ ↕️</div>
+							<div class="track-border-first">yz</div>
+							<div class="track-border-second">yw</div>
+							<div class="track-border-third">zw</div>
+						</div>
+						<div id="handle-v" style="position: absolute; top: 50%; left: 97%; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.65); border-radius: 50%; transform: translate(-50%, -50%);"></div>
+					</div>
+				</div>
+				<table id="instructions" style="width: 100%;">
 					<tr>
 						<td><button onclick="window.setView('xy', true)" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 0px;">
 							xy
@@ -222,7 +327,7 @@
 						<td>0</td>
 					</tr>
 					<tr>
-						<td><button onclick="window.setView('yz', true)" class="pretty-button" style="background-color: rgba(72, 120, 208, 0.95); border-color: transparent; margin: 0px;">
+						<td><button onclick="window.setView('yz', true)" class="pretty-button" style="background-color: rgba(214, 95, 95, 0.95); border-color: transparent; margin: 0px;">
 							yz
 						</button></td>
 						<td>0</td>
@@ -237,7 +342,7 @@
 					</tr>
 					<tr>
 						<td>
-							<button onclick="window.setView('xw', true)" class="pretty-button" style="background-color: rgba(214, 95, 95, 0.95); border-color: transparent; margin: 0px;">
+							<button onclick="window.setView('xw', true)" class="pretty-button" style="background-color: rgba(72, 120, 208, 0.95); border-color: transparent; margin: 0px;">
 								xw
 							</button>
 						</td>
@@ -259,93 +364,11 @@
 						</td>
 						<td>0</td>
 					</tr>
-				</table> 
-				<div hidden id="wheel-container" style="display: none; justify-content: space-between;">
-					<div id="slider-h" style="position: relative; width: 175px; height: 175px; margin: 7.5px">
-						<div id="track-h" style="position: absolute; top: 50%; left: 50%; width: 150px; height: 150px; border: 0px solid #000; border-radius: 50%; transform: translate(-50%, -50%);">
-							<div class="track-text">🖱️ ↔️</div>
-							<div class="track-border-first">xy</div>
-							<div class="track-border-second">yz</div>
-							<div class="track-border-third">xz</div>
-						</div>
-						<div id="handle-h" style="position: absolute; top: 50%; left: 97%; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.65); border-radius: 50%; transform: translate(-50%, -50%);"></div>
-					</div>
-					<div id="slider-v" style="position: relative; width: 175px; height: 175px; margin: 7.5px">
-						<div id="track-v" style="position: absolute; top: 50%; left: 50%; width: 150px; height: 150px; border: 0px solid #000; border-radius: 50%; transform: translate(-50%, -50%);">
-							<div class="track-text">🖱️ ↕️</div>
-							<div class="track-border-first">xw</div>
-							<div class="track-border-second">yw</div>
-							<div class="track-border-third">zw</div>
-						</div>
-						<div id="handle-v" style="position: absolute; top: 50%; left: 97%; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.65); border-radius: 50%; transform: translate(-50%, -50%);"></div>
-					</div>
-				</div>
-				<form hidden id="hypercube-options">
-					<table>
-						<tr hidden>
-							<td><label><input type="checkbox" name="wsize" style="accent-color: rgb(88, 138, 187);"/>w-Size</label></td>
-							<td><label><input type="checkbox" name="zalpha" style="accent-color: rgb(88, 138, 187);"/>z-Alpha</label></td>
-						<tr>
-							<td><label><input type="checkbox" checked name="livesummary" style="accent-color: rgb(88, 138, 187);"/>Live metrics</label></td>
-							<td><label><input type="checkbox" unchecked name="axes" style="accent-color: rgb(88, 138, 187);"/>Axis edges</label></td>
-						</tr>
-						<tr>
-							<td><label>
-								<input hidden type="range" min="120" max="240" value="240" id="deg-part" style="accent-color: rgb(88, 138, 187);"/>
-								<span hidden id="deg-part-value">Color range 240°</span>
-							</label></td>
-						</tr>
-						<tr>
-							<td><label><input type="range" min="1" max="100" value="50" id="rot-speed" style="accent-color: rgb(88, 138, 187);"/>Rotation speed</label></td>
-						</tr>
-					</table>
-				</form>
-				<div id="task-instruction" style="display: inline; flex-direction: column; justify-content: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-					
-				</div>
-				<div id="task-welcome" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-					The central view is a 2D projection of a 4D object. Your task is to match the central view with a randomly generated view. 
-					<br><br>You can rotate the central view by dragging the mouse over the canvas. Test this on the central view and click on the button below to start the task!
-				</div>
-				<canvas id="random-canvas"></canvas>
-				<div id="start-task" style="display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-					Click on the button below to generate a random view. <br>
-					<button onclick="window.startTask()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
-						Generate view
-					</button>
-				</div>
-				<div id="submit-view" style="display: none; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-					Try to match the random view above by rotating the central view. <br>When you think you have matched the view, click on the button below.
-					<button onclick="window.submitView()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
-						Submit view
-					</button>
-				</div>
-				<div id="copy-results" style="display: none; flex-direction: column; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-					You have completed the UI task, thank you for your effort! <br>The time it took to find each view is displayed below. You can copy the results to the clipboard by clicking the button below.
-					<button onclick="window.copyResults()" class="pretty-button" style="background-color: rgba(106, 204, 100, 0.95); border-color: transparent; margin: 10px;">
-						Copy results
-					</button>
-				</div>
-				<div id="ui-task-results" style="margin: 10px"></div>
+				</table>
 			</div>
-			<div style="border-left: 0px solid black; height: 0px;"></div>
-			<div class="canvas-column" style="height: 100vh; width: 48%;">
-				<div class="canvas-container">
-					<select hidden id="shape-select" style="width: 25%; height: 30px; margin: 10px;">
-						<option value="clustered">Random 4D clusters</option>
-						<option value="ymap-wine">YMAP - Wine</option>
-						<option value="force-wine">Force - Wine</option>
-						<option value="ymap-fashion-mnist">YMAP - Fashion MNIST</option>
-						<option value="iris">Iris</option>
-					</select>
-					<div id="legend-container" style="height: 30px; width: 75%; display: flex; flex-direction: row; justify-content: space-evenly; margin: 10px;"></div>
-				</div>
-				<canvas id="hypercube-canvas-xy" style="margin-bottom: 10%; cursor: grab;">canvas</canvas>
+			<div id="random-column" class="canvas-column" style="display: flex; height: 95vh; width: 13%; background-color: rgba(249, 250, 251, 1);">
 			</div>
-			<div style="border-left: 0px solid black; height: 0px;"></div>
-			<div id="random-column" class="canvas-column" style="height: 95vh; width: 13%; background-color: rgba(249, 250, 251, 1);">
-			</div>
-			<div id="obtained-column" class="canvas-column" style="height: 95vh; width: 13%; background-color: rgba(249, 250, 251, 1);">
+			<div id="obtained-column" class="canvas-column" style="display: flex; height: 95vh; width: 13%; background-color: rgba(249, 250, 251, 1);">
 			</div>
 		</div>
 	<div id="errata" hidden>4D visualization based on <a href="https://github.com/mrmilosz/hypersolid">Hypersolid</a></div>
@@ -368,6 +391,9 @@
 			else if (shapeStr == 'iris') {
 				shape = Hypersolid.iris();
 			}
+			else if (shapeStr == 'ui-task-data') {
+				shape = Hypersolid.UITaskData();
+			};
 			let windowHeight = 0.8 * window.innerHeight;
 			let miniHeight = 0.5 * window.innerHeight;
 			viewportXY = Hypersolid.Viewport(shape, document.getElementById('hypercube-canvas-xy'), {
@@ -430,15 +456,22 @@
 			window.viewFindTimes = [];
 			window.viewFindStresses = [];
 			window.viewFindNRots = [];
+			window.viewFindRots = [];
+			window.mouseAngles = [[25, 287], [343, 73], [275, 131], [167, 348], [92, 202]];
+			// shuffle the mouse angles randomly
+			window.mouseAngles = window.mouseAngles.sort(function() {
+				return 0.5 - Math.random();
+			});
+			window.mouseAngleIndex = 0;
 			window.generateRandomRotations = function() {
 				var currRotations = JSON.parse(JSON.stringify(shape.getRotations()));
-				// generate a random rotation
-				// first generate 2 random angles for the mouse sliders
-				var randomAngleH = Math.random() * 360;
-				var randomAngleV = Math.random() * 360;
+				// get the random angles
+				var randomAngleH = window.mouseAngles[window.mouseAngleIndex][0];
+				var randomAngleV = window.mouseAngles[window.mouseAngleIndex][1];
+				window.mouseAngleIndex++;
 				// convert the angles to rotations using shape.convertSlider
-				var randomRotsH = shape.convertSlider(['xy', 'yz', 'xz'], randomAngleH);
-				var randomRotsV = shape.convertSlider(['xw', 'yw', 'zw'], randomAngleV);
+				var randomRotsH = shape.convertSlider(['xy', 'xw', 'xz'], randomAngleH);
+				var randomRotsV = shape.convertSlider(['yz', 'yw', 'zw'], randomAngleV);
 				var randomRots = {};
 				// we store the rotations from randomRotsH and randomRotsV in randomRots
 				// but first we need to convert the rotations to radians
@@ -455,7 +488,8 @@
 				// compute distances of the random rotations
 				window.randomDist = shape.getDistances(shape.getVertices(), shape.getVertices(), ['x', 'y']);
 				// set the initial rotations again to preserve the main canvas
-				shape.setCustomRotations(currRotations, false);
+				//shape.setCustomRotations(currRotations, false);
+				window.setView('xy', false);
 				window.draw();
 				window.viewFindStart = new Date().getTime();
 				window.viewFindNRotations = 0;
@@ -463,9 +497,57 @@
 
 			window.nViewsToFind = 4;
 
+			window.startTutorial = function() {
+				document.getElementById('left-header').innerHTML = 'Tutorial (1/3)';
+				// hide start-tutorial
+				document.getElementById('start-tutorial').style.display = 'none';
+				// hide obtained and random columns
+				document.getElementById('random-column').style.display = 'none';
+				document.getElementById('obtained-column').style.display = 'none';
+				// show the next-tutorial button
+				document.getElementById('next-tutorial').style.display = 'flex';
+				// show control-container
+				document.getElementById('control-container').style.display = 'flex';
+				// update task-welcome text
+				document.getElementById('task-welcome').innerHTML = '4D objects can be transformed through 6 different rotations, determining what you see in its 2D projection. <br>By default, you only see the x- and y-coordinates. By rotating, you will see a combination of the 4 coordinates, as shown by the black edges.<br><br>To simplify the navigation, we implemented 2 mouse wheels (one for horizontal movement, one for vertical movement). <br><br>You can control the mouse wheels by dragging the central view. The mouse wheels and rotations in the right column will update as you do this.';
+				// update right header
+				document.getElementById('right-header').innerHTML = 'Mouse wheels and rotations';
+
+			}
+
+			window.nextTutorial = function() {
+				document.getElementById('left-header').innerHTML = 'Tutorial (2/3)';
+				// hide next-tutorial
+				document.getElementById('next-tutorial').style.display = 'none';
+				// update task-welcome text
+				document.getElementById('task-welcome').innerHTML = 'Each mouse wheel is divided into 3 parts. Depending on where you are in a mouse wheel, you will be performing 2 rotations at once (e.g. xy and xw in the green-blue gradient). <br><br>By dragging diagonally, both mouse wheels will be used - meaning you will be performing 4 rotations at once. <br><br>In the right column, you can see which rotations are being performed as you drag the central view. <br><br><b>Try to move the left mouse wheel to 180°, while keeping the right mouse wheel at 0°.</b> You should see the y- and w-coordinates in the projection.';
+				// show next-tutorial-2
+				document.getElementById('next-tutorial-2').style.display = 'flex';
+			}
+
+			window.nextTutorial2 = function() {
+				document.getElementById('left-header').innerHTML = 'Tutorial (3/3)';
+				// hide next-tutorial-2
+				document.getElementById('next-tutorial-2').style.display = 'none';
+				// show start-task
+				document.getElementById('start-task').style.display = 'flex';
+				// update task-welcome text
+				document.getElementById('task-welcome').innerHTML = 'Try this out a little to see how your mouse movements correspond to the rotations. <br><br>You do not need to remember the mouse wheels at all - it is just to help you understand why the controls may seem unintuitive at first. <br><br>You can adjust the rotation speed throughout the task in the slider above the projection. <br><br>When you are ready, click on the button below to start the task!';
+			}
+
 			window.startTask = function() {
+				// update left header
+				document.getElementById('left-header').innerHTML = 'Task'
+				// update right header
+				document.getElementById('right-header').innerHTML = 'Obtained matches'
+				// hide start-task and control-container
 				document.getElementById('start-task').style.display = 'none';
+				document.getElementById('control-container').style.display = 'none';
+				// show the random canvas, submit view and obtained and random columns
+				document.getElementById('random-canvas').style.display = 'block';
 				document.getElementById('submit-view').style.display = 'flex';
+				document.getElementById('random-column').style.display = 'flex';
+				document.getElementById('obtained-column').style.display = 'flex';
 				// then we generate a new random rotation
 				document.getElementById('ui-task-results').innerHTML = window.nViewsToFind - window.viewFindTimes.length + ' views left';
 				// redraw the ui-task-results
@@ -476,7 +558,7 @@
 			}
 
 			window.submitView = function() {
-				// we calculate the stress between the random view and the main view
+				// we calculate the stress between the given view and the main view
 				var randomDist = window.randomDist;
 				var randomDistSQ = randomDist.map(function(row) {
 					return row.map(function(dist) {
@@ -485,12 +567,15 @@
 				});
 				var currDist = shape.getDistances(shape.getVertices(), shape.getVertices(), ['x', 'y']);
 				var obtainedStress = viewportXY.computeStress(randomDist, randomDistSQ, currDist);
+				var currRotation = JSON.parse(JSON.stringify(shape.getRotations()));
 				window.viewFindStresses.push(obtainedStress);
 				// we then store the time that was required to reach this match
 				window.viewFindTimes.push(new Date().getTime() - window.viewFindStart);
 				// store the number of rotations that were required to reach this match
 				window.viewFindNRots.push(window.viewFindNRotations);
-				// get the canvas of the random view
+				// store the final rotations that were submitted
+				window.viewFindRots.push(currRotation);
+				// get the canvas of the given view
 				var randomCanvas = document.getElementById('random-canvas');
 				var clonedCanvas = randomCanvas.cloneNode(true);
 				// get the canvas of the main view
@@ -508,14 +593,14 @@
 				// add main canvas to the obtained-column div
 				var obtainedColumn = document.getElementById('obtained-column');
 				obtainedColumn.appendChild(clonedMainCanvas);
-				// redraw the random view
+				// redraw the given view
 				var ctx = clonedCanvas.getContext('2d');
 				ctx.drawImage(randomCanvas, 0, 0, clonedCanvas.width, clonedCanvas.height);
 				// redraw the main view
 				var ctxMain = clonedMainCanvas.getContext('2d');
 				ctxMain.drawImage(mainCanvas, 0, 0, clonedMainCanvas.width, clonedMainCanvas.height);
 				// update the ui-task-results
-				document.getElementById('ui-task-results').innerHTML = window.nViewsToFind - window.viewFindTimes.length + ' views left';
+				document.getElementById('ui-task-results').innerHTML = window.nViewsToFind - window.viewFindTimes.length + ' view(s) left';
 				
 				if (window.viewFindTimes.length < window.nViewsToFind) {
 					// we make the start-task button visible again
@@ -536,8 +621,14 @@
 						'View find time': window.viewFindTimesSeconds,
 						'Performed rotations': window.viewFindNRots,
 						'Stress': window.viewFindStresses,
+						'Rotations': window.viewFindRots,
+						'Mouse angles': window.mouseAngles,
 					}
-					document.getElementById('ui-task-results').innerHTML = '<pre>' + JSON.stringify(window.taskResults, null, 2) + '</pre'
+					// format the results nicely for the user
+					document.getElementById('ui-task-results').innerHTML = '<b>Elapsed time (s):</b><br> ' + window.viewFindTimesSeconds.join(', ') + '<br><br><b>Performed rotations:</b><br>' + window.viewFindNRots.join(', ') + '<br><br><b>Stress (0-1, lower is better):</b><br>' + window.viewFindStresses.join(', ');
+					// make ui-task-results unselectable
+					document.getElementById('ui-task-results').style.userSelect = 'none';
+					document.getElementById('ui-task-results').style.fontFamily = 'segoe ui, tahoma, geneva, verdana, sans-serif';
 					// show the copy results button and hide the submit view button
 					document.getElementById('copy-results').style.display = 'flex';
 					document.getElementById('submit-view').style.display = 'none';
