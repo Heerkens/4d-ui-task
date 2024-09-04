@@ -454,7 +454,7 @@
       // convert the angle from degrees back to radians
       var lastAngleH = lastAngleHDisplay * Math.PI / 180;
       var lastAngleV = lastAngleVDisplay * Math.PI / 180;
-
+      
       return [lastAngleH, lastAngleV];
     };
 
@@ -488,7 +488,7 @@
       sliderH.style.top = sliderHY+correctionSlider + 'px';
       sliderV.style.left = sliderVX+correctionSlider + 'px';
       sliderV.style.top = sliderVY+correctionSlider + 'px';
-    };
+      };
 
     self.setSliderAngles = function(rotations) {
       //console.log('setting slider angles to match rotations' + JSON.stringify(rotations));
@@ -586,10 +586,10 @@
         // sin and cos precomputed for efficiency
         var s = Math.sin(rotations[axis]);
         var c = Math.cos(rotations[axis]);
-        for (var i in identity) {
+        for (var i in identity) { 
           rotateVertex[axis](identity[i], s, c);
         }
-      }
+      } 
       // compute the feature contributions
       xContrib = Math.sqrt(Math.pow(identity[0].x, 2) + Math.pow(identity[0].y, 2));
       yContrib = Math.sqrt(Math.pow(identity[1].x, 2) + Math.pow(identity[1].y, 2));
@@ -1171,6 +1171,17 @@
         // move the slider handle alongside the track, rather than inside it
         sliderV.style.left = sliderVX+correctionSlider + 'px';
         sliderV.style.top = sliderVY+correctionSlider + 'px';
+        // update the display of the angles
+        var mouseHAngle = lastAngleHDisplay + 90;
+        var mouseVAngle = lastAngleVDisplay + 90;
+        if (mouseHAngle > 360) {
+          mouseHAngle -= 360;
+        }
+        if (mouseVAngle >= 360) {
+          mouseVAngle -= 360;
+        }
+        document.getElementById('mouse-h-angle').innerHTML = Math.round(mouseHAngle) + '°';
+        document.getElementById('mouse-v-angle').innerHTML = Math.round(mouseVAngle) + '°';
 
         // set the rotations
         shape.setSliderRotations();
